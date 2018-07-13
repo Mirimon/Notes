@@ -39,5 +39,9 @@ namespace SecurityNotes.Data {
         public void DeleteNote(Guid id) {
             FileHandler.Instance.DeleteNote(id);
         }
+
+        public void SetAuthCode(string code) {
+            FileHandler.Instance.SetAuthCode(code);
+        }
     }
 }

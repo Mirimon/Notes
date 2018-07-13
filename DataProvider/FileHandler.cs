@@ -19,11 +19,19 @@ namespace SecurityNotes.Data {
             }
         }
 
-        readonly string fileName = "notes.sn";
-        string FilePath {
+        readonly string notesFileName = "notes.sn";
+        string NotesFilePath {
             get {
                 string currentDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-                return Path.Combine(currentDirectory, fileName);
+                return Path.Combine(currentDirectory, notesFileName);
+            }
+        }
+
+        readonly string codeFileName = "ac.sn";
+        string CodeFilePath {
+            get {
+                string currentDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+                return Path.Combine(currentDirectory, codeFileName);
             }
         }
 
@@ -42,11 +50,11 @@ namespace SecurityNotes.Data {
 
         public void AddNote(NoteModel noteModel) {
             Notes.Add(noteModel);
-            SaveToFile();
+            SaveNotesToFile();
         }
 
         public void ChangeNote(NoteModel noteModel) {
-            SaveToFile();
+            SaveNotesToFile();
         }
 
         public void DeleteNote(Guid id) {
@@ -55,26 +63,32 @@ namespace SecurityNotes.Data {
                 return;
 
             Notes.Remove(noteModel);
-            SaveToFile();
+            SaveNotesToFile();
+        }
+
+        public void SetAuthCode(string code) {
+            SaveToFileCore(code, CodeFilePath);
         }
 
         static readonly string passwordHash = "pass";
         static readonly string saltKey = "gjAbsk5aZs12s0jv";
         static readonly string VIKey = "*aFgthXfdbs4Bfh2sv";
 
-        void SaveToFile() {
+        void SaveNotesToFile() {
             string json = JsonConvert.SerializeObject(Notes);
+            SaveToFileCore(json, NotesFilePath);
+        }
 
-            byte[] fileContent = Encrypt(json);
-            File.WriteAllBytes(FilePath, fileContent);
-
+        void SaveToFileCore(string content, string path) {
+            byte[] fileContent = Encrypt(content);
+            File.WriteAllBytes(path, fileContent);
         }
 
         void ReadFile() {
             Notes = new ObservableCollection<NoteModel>();
-            if(File.Exists(FilePath)) {
+            if(File.Exists(NotesFilePath)) {
                 try {
-                    string result = Decrypt(File.ReadAllBytes(FilePath));
+                    string result = Decrypt(File.ReadAllBytes(NotesFilePath));
                     Notes = JsonConvert.DeserializeObject<ObservableCollection<NoteModel>>(result);
                 } catch { }
             }
@@ -101,7 +115,7 @@ namespace SecurityNotes.Data {
             return cipherTextBytes;
         }
 
-        public static string Decrypt(byte[] fileBytes) {
+        string Decrypt(byte[] fileBytes) {
             byte[] keyBytes = new Rfc2898DeriveBytes(passwordHash, Encoding.ASCII.GetBytes(saltKey)).GetBytes(256 / 8);
             var symmetricKey = new RijndaelManaged() { Mode = CipherMode.CBC, Padding = PaddingMode.None };
 

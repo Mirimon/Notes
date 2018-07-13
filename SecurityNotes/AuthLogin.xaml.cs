@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Dropbox.Api;
+using SecurityNotes.Data;
 using Xamarin.Forms;
 
 namespace SecurityNotes {
@@ -9,7 +10,6 @@ namespace SecurityNotes {
         const string redirectUrl = @"http://localhost:42434/login";
         const string apiKey = "q895k94ejejcblq";
         string ConnectState { get; set; }
-        string Code { get; set; }
 
         public AuthLogin() {
             InitializeComponent();
@@ -36,7 +36,13 @@ namespace SecurityNotes {
             if (!state.ToLower().Equals(ConnectState.ToLower()))
                 return;
 
-            Code = e.Url.Substring(codePosition + codeId.Length);
+            string code = e.Url.Substring(codePosition + codeId.Length);
+            if (string.IsNullOrEmpty(code))
+                return;
+            
+            DataProvider.Instance.SetAuthCode(code);
+
+            MainNavigationPage.Instance.PopAsync(false);
             //"http://localhost:42434/login?state=0fc252cb204e46878f080712dbf5a524&code=WzAwaaRn3JMAAAAAAAAGBtGJSms2wP_gsgCLPPYqR9c"
         }
 
