@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:local="clr-namespace:SecurityNotes" x:Class="SecurityNotes.Views.NotesList">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Clicked="AddNew_Clicked" Text=" + "/>
+        <ToolbarItem Clicked="Dropbox_Clicked" Text="D"/>
+    </ContentPage.ToolbarItems>
+
+    <StackLayout>
+        <!-- Place new controls here -->
+        <ListView x:Name="listView">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextCell Text="{Binding Header}" TextColor="Black">
+                        <TextCell.ContextActions>
+                            <MenuItem Clicked="DeleteItem_Clicked" IsDestructive="true" CommandParameter="{Binding .}" Text="Delete"/>
+                        </TextCell.ContextActions>
+                    </TextCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </StackLayout>
+</ContentPage>
