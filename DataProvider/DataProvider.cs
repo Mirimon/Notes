@@ -40,8 +40,8 @@ namespace SecurityNotes.Data {
             FileHandler.Instance.DeleteNote(id);
         }
 
-        public void SetAuthCode(string code) {
-            FileHandler.Instance.SetAuthCode(code);
+        public void SetAccessToken(string accessToken) {
+            FileHandler.Instance.SetAccessToken(accessToken);
         }
     }
 }

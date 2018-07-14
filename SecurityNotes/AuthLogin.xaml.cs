@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Dropbox.Api;
 using SecurityNotes.Data;
 using Xamarin.Forms;
@@ -9,6 +10,7 @@ namespace SecurityNotes {
     public partial class AuthLogin : ContentPage {
         const string redirectUrl = @"http://localhost:42434/login";
         const string apiKey = "q895k94ejejcblq";
+        const string appSecret = "4r9x6ab8d4t0lat";
         string ConnectState { get; set; }
 
         public AuthLogin() {
@@ -21,13 +23,11 @@ namespace SecurityNotes {
             webView.Source = authorizeUrl;
         }
 
-        void WebView_Navigating(object sender, WebNavigatingEventArgs e) {
-            //Regex responceUrlRegex = new Regex(@"http://localhost:42434/login?state={}&code={}");
+        async Task WebView_Navigating(object sender, WebNavigatingEventArgs e) {
             string start = @"http://localhost:42434/login?state=";
             string codeId = @"&code=";
             if (!e.Url.StartsWith(start, StringComparison.InvariantCultureIgnoreCase))
                 return;
-            
             int codePosition = e.Url.IndexOf(codeId, StringComparison.InvariantCultureIgnoreCase);
             if (codePosition == -1)
                 return;
@@ -40,10 +40,10 @@ namespace SecurityNotes {
             if (string.IsNullOrEmpty(code))
                 return;
             
-            DataProvider.Instance.SetAuthCode(code);
+            OAuth2Response auth2Response = await DropboxOAuth2Helper.ProcessCodeFlowAsync(code, apiKey, appSecret, redirectUrl);
+            DataProvider.Instance.SetAccessToken(auth2Response.AccessToken);
 
-            MainNavigationPage.Instance.PopAsync(false);
-            //"http://localhost:42434/login?state=0fc252cb204e46878f080712dbf5a524&code=WzAwaaRn3JMAAAAAAAAGBtGJSms2wP_gsgCLPPYqR9c"
+            await MainNavigationPage.Instance.PopAsync(false);
         }
 
     }

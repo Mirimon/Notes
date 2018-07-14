@@ -23,33 +23,32 @@ namespace SecurityNotes.Data {
             }
         }
 
-        string NotesFileName { get { return "notes.sn"; } }
+        string notesFileName { get { return "notes.sn"; } }
         string NotesFilePath {
             get {
                 string currentDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-                return Path.Combine(currentDirectory, NotesFileName);
+                return Path.Combine(currentDirectory, notesFileName);
             }
         }
+        string DropboxNotesPath { get { "/" + notesFileName; } }
 
-        readonly string codeFileName = "ac.sn";
-        string CodeFilePath {
+        readonly string accessTokenFileName = "at.sn";
+        string AccessTokenFilePath {
             get {
                 string currentDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-                return Path.Combine(currentDirectory, codeFileName);
+                return Path.Combine(currentDirectory, accessTokenFileName);
             }
         }
 
-        DropboxClient DropboxClient { get; set; }
-
-        private FileHandler() {
-            CreateDropBoxClient();
-        }
+        private FileHandler() { }
 
         ObservableCollection<NoteModel> Notes { get; set; }
 
-        public ObservableCollection<NoteModel> GetNotes() {
+        public async Task<ObservableCollection<NoteModel>> GetNotes() {
             ReadNotesFile();
             // return local notes => download notes from dropbos async => update local notes by downloaded notes
+
+            //byte[] remoteNotes = await DownloadFromDropbox();
 
             //Notes = new ObservableCollection<NoteModel>();
             //for (int i = 0; i < 5; i++) {
@@ -76,9 +75,8 @@ namespace SecurityNotes.Data {
             await SaveNotesToFile();
         }
 
-        public void SetAuthCode(string code) {
-            SaveToFileCore(code, CodeFilePath);
-            CreateDropBoxClient();
+        public void SetAccessToken(string accessToken) {
+            SaveToFileCore(accessToken, AccessTokenFilePath);
         }
 
         static readonly string passwordHash = "pass";
@@ -93,16 +91,26 @@ namespace SecurityNotes.Data {
         }
 
         async Task UploadToDropbox(byte[] file) {
-            if (DropboxClient == null)
+            DropboxClient dropboxClient = GetDropBoxClient();
+            if (dropboxClient == null)
                 return;
             
             using (MemoryStream ms = new MemoryStream(file)) {
                 try {
-                    FileMetadata fileMetadata = await DropboxClient.Files.UploadAsync("/prnotes/" + NotesFileName, WriteMode.Overwrite.Instance, body: ms);    
+                    FileMetadata fileMetadata = await dropboxClient.Files.UploadAsync(DropboxNotesPath, WriteMode.Overwrite.Instance, body: ms);    
                 } catch (Exception ex) {
                     string s = ex.Message;
                 }
+            }
+        }
 
+        async Task<byte[]> DownloadFromDropbox() {
+            DropboxClient dropboxClient = GetDropBoxClient();
+            if (dropboxClient == null)
+                return null;
+
+            using (var response = await dropboxClient.Files.DownloadAsync(DropboxNotesPath)) {
+                return await response.GetContentAsByteArrayAsync();
             }
         }
 
@@ -171,12 +179,12 @@ namespace SecurityNotes.Data {
             return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount).TrimEnd("\0".ToCharArray());
         }
 
-        void CreateDropBoxClient() {
-            string authToken = ReadFileCore(CodeFilePath);
+        DropboxClient GetDropBoxClient() {
+            string authToken = ReadFileCore(AccessTokenFilePath);
             if (string.IsNullOrEmpty(authToken))
-                return;
+                return null;
 
-            DropboxClient = new DropboxClient(authToken);
+            return new DropboxClient(authToken);
         }
     }
 }
