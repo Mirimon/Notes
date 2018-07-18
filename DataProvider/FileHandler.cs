@@ -10,6 +10,7 @@ using Dropbox.Api;
 using Dropbox.Api.FileRequests;
 using System.Threading.Tasks;
 using Dropbox.Api.Files;
+using System.Collections.Generic;
 
 namespace SecurityNotes.Data {
     internal class FileHandler {
@@ -23,7 +24,7 @@ namespace SecurityNotes.Data {
             }
         }
 
-        string notesFileName { get { return "notes.sn"; } }
+        string notesFileName { get { return "sgwfef.sn"; } }
         string NotesFilePath {
             get {
                 string currentDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
@@ -32,7 +33,15 @@ namespace SecurityNotes.Data {
         }
         string DropboxNotesPath { get { "/" + notesFileName; } }
 
-        readonly string accessTokenFileName = "at.sn";
+        string deletedNotesFileName { get { return "sgsev.sn"; } }
+        string DeletedNotesFilePath {
+            get {
+                string currentDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+                return Path.Combine(currentDirectory, deletedNotesFileName);
+            }
+        }
+
+        readonly string accessTokenFileName = "skdfb.sn";
         string AccessTokenFilePath {
             get {
                 string currentDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
@@ -42,19 +51,17 @@ namespace SecurityNotes.Data {
 
         private FileHandler() { }
 
-        ObservableCollection<NoteModel> Notes { get; set; }
-
-        public async Task<ObservableCollection<NoteModel>> GetNotes() {
-            ReadNotesFile();
+        public async Task LoadNotes(ObservableCollection<NoteModel> notes) {
+            notes.Clear();
+            ReadNotesFile(notes);
             // return local notes => download notes from dropbos async => update local notes by downloaded notes
 
-            //byte[] remoteNotes = await DownloadFromDropbox();
+            byte[] remoteNotes = await DownloadFromDropbox();
 
             //Notes = new ObservableCollection<NoteModel>();
             //for (int i = 0; i < 5; i++) {
             //    Notes.Add(new NoteModel() { Header = "header " + i, Content = "content " + i, ChangedTime = DateTime.Now, Id = Guid.NewGuid() });
             //}
-            return Notes;
         }
 
         public async Task AddNote(NoteModel noteModel) {
@@ -121,15 +128,30 @@ namespace SecurityNotes.Data {
             return fileContent;
         }
 
-        void ReadNotesFile() {
-            Notes = new ObservableCollection<NoteModel>();
+        void ReadNotesFile(ObservableCollection<NoteModel> notes) {
             string json = ReadFileCore(NotesFilePath);
             if (string.IsNullOrEmpty(json))
                 return;
 
             try {
-                Notes = JsonConvert.DeserializeObject<ObservableCollection<NoteModel>>(json);
+                ObservableCollection<NoteModel> notesFromJson = JsonConvert.DeserializeObject<ObservableCollection<NoteModel>>(json);
+                UnionNotes(notes, notesFromJson);
+                if(NeedUpdateSource(notes, notesFromJson)) {
+                    UPDATE!!!
+                }
             } catch { }
+        }
+
+        List<Guid> ReadDeletedNotesFile() {
+            string json = ReadFileCore(DeletedNotesFilePath);
+            if (string.IsNullOrEmpty(json))
+                return new List<Guid>();
+
+            try {
+                return JsonConvert.DeserializeObject<List<Guid>>(json);
+            } catch {
+                return new List<Guid>();
+            }
         }
 
         string ReadFileCore(string path) {
@@ -185,6 +207,43 @@ namespace SecurityNotes.Data {
                 return null;
 
             return new DropboxClient(authToken);
+        }
+
+        void UnionNotes(ObservableCollection<NoteModel> currentNotes, ObservableCollection<NoteModel> sourceNotes) {
+            List<Guid> deletedNotes = ReadDeletedNotesFile();
+            foreach (NoteModel note in sourceNotes) {
+                NoteModel sameNote = currentNotes.FirstOrDefault(n => n.Id == note.Id);
+                if(sameNote == null) {
+                    if(!deletedNotes.Contains(note.Id))
+                        currentNotes.Add(note);
+                } else {
+                    if(sameNote.ChangedTime < note.ChangedTime) {
+                        NoteModel.Clone(note, sameNote);
+                    }
+                }
+            }
+        }
+        bool NeedUpdateSource(ObservableCollection<NoteModel> currentNotes, ObservableCollection<NoteModel> sourceNotes) {
+            if (currentNotes.Count != sourceNotes.Count)
+                return true;
+
+            List<Guid> deletedNotes = ReadDeletedNotesFile();
+            foreach (NoteModel note in sourceNotes) {
+                NoteModel sameNote = currentNotes.FirstOrDefault(n => n.Id == note.Id);
+                if(sameNote == null) {
+                    if (deletedNotes.Contains(note.Id))
+                        return true;
+                }
+
+                if (note.ChangedTime > sameNote.ChangedTime)
+                    continue;
+
+                if(!NoteModel.AreEqual(sameNote, note)) {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using Core.Model;
 
 namespace SecurityNotes.Data {
@@ -14,12 +15,16 @@ namespace SecurityNotes.Data {
             }
         }
 
+        public ObservableCollection<NoteModel> Notes { get; set; }
+
         private Guid NewNoteId { get; set; }
 
-        private DataProvider() { }
+        private DataProvider() {
+            Notes = new ObservableCollection<NoteModel>();
+        }
 
-        public ObservableCollection<NoteModel> GetNotes() {
-            return FileHandler.Instance.GetNotes();
+        public async Task LoadNotes() {
+            await FileHandler.Instance.LoadNotes(Notes);
         }
 
         public NoteModel CreateNote() {
