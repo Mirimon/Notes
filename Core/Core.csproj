@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>SecurityNotes.Core</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,5 +10,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Model\" />
+    <Folder Include="Utils\" />
   </ItemGroup>
 </Project>

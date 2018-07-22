@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace Core.Model {
+namespace SecurityNotes.Core.Model {
     public class NoteModel : INotifyPropertyChanged {
         public static void Clone(NoteModel source, NoteModel target) {
             target.ChangedTime = source.ChangedTime;

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Core.Model;
+using SecurityNotes.Core.Model;
 using SecurityNotes.Data;
 using Xamarin.Forms;
 

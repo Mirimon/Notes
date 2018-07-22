@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 using SecurityNotes.Data;
-using Core.Model;
+using SecurityNotes.Core.Model;
 
 namespace SecurityNotes.Views {
     public partial class NotesList : ContentPage {
@@ -29,7 +29,7 @@ namespace SecurityNotes.Views {
             this.Navigation.PushAsync(new AuthLogin(), true);
         }
 
-        void DeleteItem_Clicked(object sender, EventArgs e) {
+        async Task DeleteItem_Clicked(object sender, EventArgs e) {
             MenuItem menuItem = sender as MenuItem;
             if (menuItem == null)
                 return;
@@ -38,7 +38,7 @@ namespace SecurityNotes.Views {
             if (noteModel == null)
                 return;
 
-            DataProvider.Instance.DeleteNote(noteModel.Id);
+            await DataProvider.Instance.DeleteNote(noteModel.Id);
         }
     }
 }

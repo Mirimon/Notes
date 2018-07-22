@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>SecurityNotes.Data</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,5 +11,8 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="Dropbox.Api" Version="4.8.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="FileWorkers\" />
   </ItemGroup>
 </Project>
