@@ -17,9 +17,6 @@ namespace SecurityNotes {
             InitializeComponent();
             ConnectState = Guid.NewGuid().ToString("N");
             Uri authorizeUrl = DropboxOAuth2Helper.GetAuthorizeUri(OAuthResponseType.Code, apiKey, redirectUrl, ConnectState);
-            //Uri authorizeUrl = DropboxOAuth2Helper.GetAuthorizeUri(apiKey);
-
-            //authorizeUrl = new Uri(authorizeUrl.AbsoluteUri.Replace("%2F", "/"));
             webView.Source = authorizeUrl;
         }
 
@@ -39,9 +36,11 @@ namespace SecurityNotes {
             string code = e.Url.Substring(codePosition + codeId.Length);
             if (string.IsNullOrEmpty(code))
                 return;
-            
+
+            e.Cancel = true;
+
             OAuth2Response auth2Response = await DropboxOAuth2Helper.ProcessCodeFlowAsync(code, apiKey, appSecret, redirectUrl);
-            DataProvider.Instance.SetAccessToken(auth2Response.AccessToken);
+            await DataProvider.Instance.SetAccessToken(auth2Response.AccessToken);
 
             await MainNavigationPage.Instance.PopAsync(false);
         }

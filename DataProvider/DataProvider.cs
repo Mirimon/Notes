@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using Core.Model;
+using System.Threading.Tasks;
+using SecurityNotes.Core.Model;
 
 namespace SecurityNotes.Data {
     public class DataProvider {
@@ -14,12 +15,16 @@ namespace SecurityNotes.Data {
             }
         }
 
+        public ObservableCollection<NoteModel> Notes { get; set; }
+
         private Guid NewNoteId { get; set; }
 
-        private DataProvider() { }
+        private DataProvider() {
+            Notes = new ObservableCollection<NoteModel>();
+        }
 
-        public ObservableCollection<NoteModel> GetNotes() {
-            return FileHandler.Instance.GetNotes();
+        public async Task LoadNotes() {
+            await FileHandler.Instance.LoadNotes(Notes);
         }
 
         public NoteModel CreateNote() {
@@ -27,21 +32,22 @@ namespace SecurityNotes.Data {
             return new NoteModel() { Id = NewNoteId };
         }
 
-        public void SaveNote(NoteModel noteModel) {
+        public async Task SaveNote(NoteModel noteModel) {
             if(noteModel.Id == NewNoteId) {
-                FileHandler.Instance.AddNote(noteModel);
+                await FileHandler.Instance.AddNote(noteModel, Notes);
                 NewNoteId = Guid.Empty;
             } else {
-                FileHandler.Instance.ChangeNote(noteModel);
+                await FileHandler.Instance.ChangeNote(noteModel, Notes);
             }
         }
 
-        public void DeleteNote(Guid id) {
-            FileHandler.Instance.DeleteNote(id);
+        public async Task DeleteNote(Guid id) {
+            await FileHandler.Instance.DeleteNote(id, Notes);
         }
 
-        public void SetAccessToken(string accessToken) {
+        public async Task SetAccessToken(string accessToken) {
             FileHandler.Instance.SetAccessToken(accessToken);
+            await LoadNotes();
         }
     }
 }

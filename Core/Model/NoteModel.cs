@@ -2,8 +2,19 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace Core.Model {
+namespace SecurityNotes.Core.Model {
     public class NoteModel : INotifyPropertyChanged {
+        public static void Clone(NoteModel source, NoteModel target) {
+            target.ChangedTime = source.ChangedTime;
+            target.Content = source.Content;
+            target.Header = source.Header;
+            target.Id = source.Id;
+        }
+
+        public static bool AreEqual(NoteModel a, NoteModel b) {
+            return (a.Id == b.Id) && (a.Content == b.Content) && (a.Header == b.Header) && (a.ChangedTime == b.ChangedTime);
+        }
+
         public Guid Id { get; set; }
 
         string header = "";
