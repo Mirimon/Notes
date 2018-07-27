@@ -59,16 +59,19 @@ namespace SecurityNotes.Data {
             notes.Clear();
             foreach(IFileWorker fileWorker in FileWorkers) {
                 await fileWorker.ReadNotes(notes);
+                SortHelper.Sort<NoteModel>(notes, (n1, n2) => n1.ChangedTime > n2.ChangedTime ? true : false);
             }
         }
 
         public async Task AddNote(NoteModel noteModel, ObservableCollection<NoteModel> notes) {
             notes.Add(noteModel);
+            SortHelper.Sort<NoteModel>(notes, (n1, n2) => n1.ChangedTime > n2.ChangedTime ? true : false);
             await SaveNotes(notes);
         }
 
         public async Task ChangeNote(NoteModel noteModel, ObservableCollection<NoteModel> notes) {
             // noteModel may be useful in the future if I decide to do event sourcing
+            SortHelper.Sort<NoteModel>(notes, (n1, n2) => n1.ChangedTime > n2.ChangedTime ? true : false);
             await SaveNotes(notes);
         }
 

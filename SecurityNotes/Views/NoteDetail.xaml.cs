@@ -27,6 +27,7 @@ namespace SecurityNotes {
             NoteModel noteModel = BindingContext as NoteModel;
 
             if(noteModel != null) {
+                noteModel.ChangedTime = DateTime.Now;
                 DataProvider.Instance.SaveNote(noteModel);
             }
         }
